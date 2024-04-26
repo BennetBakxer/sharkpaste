@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasteBin Clone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/scroll/simplescrollbars.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/scroll/simplescrollbars.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
+    <style>
+        body {
+            background-color: #07080A;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            max-width: 1000px;
+        }
+
+        .left-box,
+        .right-box {
+            background: linear-gradient(to top left, #101113, #0b0b0c);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 1rem;
+            gap: 10px;
+        }
+
+        .left-box {
+            flex: 3;
+            margin-right: 2rem;
+            height: 400px;
+            width: 120rem;
+        }
+
+        .right-box {
+            flex: 2;
+            width: 100px;
+        }
+
+        h2,
+        p {
+            margin: 0;
+            padding: 0;
+            color: #f9f9f9;
+            font-size: medium;
+        }
+
+        textarea,
+        input,
+        select {
+            background-color: #08090A;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            padding: 10px;
+            outline: none;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            height: 20rem;
+            resize: none;
+            overflow: auto;
+        }
+
+        input[type="text"],
+        select,
+        input[type="datetime-local"] {
+            height: 40px;
+        }
+
+        button {
+            background-color: #ffffff;
+            color: #20232a;
+            padding: 10px 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 40px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        button:hover {
+            background-color: #edeaea;
+            color: #000000;
+        }
+
+        .icon {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .CodeMirror {
+            border-radius: 5px;
+            width: 40rem;
+            height: 400px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+
+        .CodeMirror-scroll {
+            overflow-y: scroll;
+            overflow-x: hidden;
+        }
+
+        .CodeMirror-scrollbar {
+            width: 8px;
+            background-color: #cbd1de;
+        }
+
+        .CodeMirror-scrollbar-filler,
+        .CodeMirror-gutter-filler {
+            background: #0537ab;
+        }
+
+        .CodeMirror-scrollbar div {
+            background-color: #15427d;
+            border-radius: 10px;
+        }
+
+        .CodeMirror-lines {}
+
+        .CodeMirror-gutters {
+            background: rgba(174, 40, 40, 0.5);
+            color: #fff;
+        }
+
+        .CodeMirror-linenumber {
+            color: #fff;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            background: #20232a;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal input[type="password"] {
+            width: 200px;
+            padding: 10px;
+        }
+
+        .modal button {
+            width: 100px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            z-index: 1;
+        }
+
+
+        .dropdown {
+            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            width: 200px;
+        }
+
+        .dropdown-select {
+            background-color: #08090A;
+            padding: 10px;
+            border-radius: 8px;
+            width: 75px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Light blue border for aesthetics */
+        }
+
+        .dropdown-select .arrow {
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            padding: 3px;
+            transform: rotate(45deg);
+            -webkit-transform: rotate(45deg);
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #131415;
+            border-radius: 4px;
+            margin-top: 2px;
+        }
+
+        .dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(174, 40, 40, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+
+        <div class="left-box">
+            <div class="icon">
+                <img src="images/sharkpaste.png" style="height: 32px; margin-left: 2rem;">
+            </div>
+            <textarea id="content" placeholder="Paste your content here..."></textarea>
+        </div>
+        <div class="right-box">
+            <input style="border-radius: 10px; outline: none; height: 30px;" type="text" id="pasteName"
+                placeholder="Title">
+            <select id="syntax">
+                <option value="">None</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="javascript">JavaScript</option>
+            </select>
+            <select id="expiration">
+
+                <!-- Replace its content with the following options: -->
+                <option value="never">Never</option>
+                <option value="burn">Burn after read</option>
+                <option value="10m">10 Minutes</option>
+                <option value="1h">1 Hour</option>
+                <option value="1d">1 Day</option>
+                <option value="1w">1 Week</option>
+                <option value="2w">2 Weeks</option>
+            </select>
+            <button onclick="uploadContent()">Upload</button>
+            <button onclick="showPasswordModal()">Set Password</button>
+        </div>
+    </div>
+    <div class="overlay" onclick="closeModal()"></div>
+    <div class="modal" style="background-color: #0a0a0a;">
+        <h2 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center;">
+            <span style="margin-right: 8px; border: none;">🔒</span>Set Encrypted Password
+        </h2>
+        <input type="password" id="modalPassword" placeholder="Enter password"
+            style="margin-bottom: 10px; background-color: #20232a; margin-top: 10px; outline: none;">
+        <button style="border-radius: 2rem; width: 100%;" onclick="setPassword()">Confirm</button>
+    </div>
+    <div id="link-footer" style="display: none; width: 100%; height: 40px; align-items: center; justify-content: center; display: flex; position: fixed; bottom: 0; font-family: monospace;">
+        <a id="paste-link" href="" target="_blank" style="color: lightgreen; text-decoration: none;"></a>
+    </div>
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById('content'), {
+            lineNumbers: true,
+            mode: "htmlmixed",
+            scrollbarStyle: "null"
+        });
+
+        function showPasswordModal() {
+            document.querySelector('.modal').style.display = 'flex';
+            document.querySelector('.overlay').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.querySelector('.modal').style.display = 'none';
+            document.querySelector('.overlay').style.display = 'none';
+        }
+
+        function setPassword() {
+            const password = document.getElementById('modalPassword').value;
+            if (password) {
+                document.getElementById('filePassword').value = password;
+            }
+            closeModal();
+        }
+
+        function uploadContent() {
+            const name = document.getElementById('pasteName').value;
+            const content = editor.getValue();
+            const syntax = document.getElementById('syntax').value;
+            const expiration = document.getElementById('expiration').value;
+            const password = document.getElementById('filePassword').value;
+
+            fetch('/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, content, syntax, expiration, password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.url) {
+                        showLink(data.url);
+                    }
+                });
+        }
+
+        document.getElementById('syntax').addEventListener('change', updateSyntaxMode);
+
+        function updateSyntaxMode() {
+            var syntaxSelect = document.getElementById('syntax');
+            var mode = syntaxSelect.value;
+            var modeMap = {
+                "html": "htmlmixed",
+                "css": "css",
+                "javascript": "javascript"
+            };
+            editor.setOption("mode", modeMap[mode] || "");
+        }
+    </script>
+    <script>
+        document.querySelector('.dropdown-select').addEventListener('click', function () {
+            const dropdownList = document.querySelector('.dropdown-list');
+            dropdownList.style.display = dropdownList.style.display === 'block' ? 'none' : 'block';
+        });
+
+        function selectItem(value) {
+            document.getElementById('dropdown-selected').textContent = value;
+            document.querySelector('.dropdown-list').style.display = 'none';
+            // Assuming you might need the selected value for some JavaScript operations:
+            console.log("Selected Syntax: " + value);
+        }
+
+        // Close dropdown if clicked outside
+        window.addEventListener('click', function (e) {
+            if (!document.querySelector('.dropdown').contains(e.target)) {
+                document.querySelector('.dropdown-list').style.display = 'none';
+            }
+        });
+    </script>
+    <script>
+        function showLink(url) {
+            var linkFooter = document.getElementById('link-footer');
+            var pasteLink = document.getElementById('paste-link');
+            pasteLink.href = url;
+            pasteLink.textContent = url;
+            linkFooter.style.display = 'flex';
+        }
+
+        function copyLink() {
+            var pasteLink = document.getElementById('paste-link');
+            navigator.clipboard.writeText(pasteLink.textContent).then(function () {
+                alert('Link copied to clipboard!');
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+    </script>
+    <input type="hidden" id="filePassword">
+</body>
+
+</html>

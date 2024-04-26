@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasteBin Clone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/scroll/simplescrollbars.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/scroll/simplescrollbars.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
+    <style>
+        body {
+            background-color: #07080A;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            max-width: 1000px;
+        }
+
+        .left-box,
+        .right-box {
+            background: linear-gradient(to top left, #101113, #131315);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 1rem;
+            gap: 10px;
+        }
+
+        .left-box {
+            flex: 3;
+            margin-right: 2rem;
+            height: 400px;
+            width: 120rem;
+        }
+
+
+
+        h2,
+        p {
+            margin: 0;
+            padding: 0;
+            color: #f9f9f9;
+            font-size: medium;
+        }
+
+        textarea,
+        input,
+        select {
+            background-color: #08090A;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            padding: 10px;
+            outline: none;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            height: 20rem;
+            resize: none;
+            overflow: auto;
+        }
+
+        input[type="text"],
+        select,
+        input[type="datetime-local"] {
+            height: 40px;
+        }
+
+        button {
+            background-color: #ffffff;
+            color: #20232a;
+            padding: 10px 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 40px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        button:hover {
+            background-color: #edeaea;
+            color: #000000;
+        }
+
+        .icon {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .CodeMirror {
+            border-radius: 5px;
+            width: 40rem;
+            height: 400px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+
+        .CodeMirror-scroll {
+            overflow-y: scroll;
+            overflow-x: hidden;
+        }
+
+        .CodeMirror-scrollbar {
+            width: 8px;
+            background-color: #cbd1de;
+        }
+
+        .CodeMirror-scrollbar-filler,
+        .CodeMirror-gutter-filler {
+            background: #0537ab;
+        }
+
+        .CodeMirror-scrollbar div {
+            background-color: #15427d;
+            border-radius: 10px;
+        }
+
+        .CodeMirror-lines {}
+
+        .CodeMirror-gutters {
+            background: rgba(174, 40, 40, 0.5);
+            color: #fff;
+        }
+
+        .CodeMirror-linenumber {
+            color: #fff;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            background: #20232a;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal input[type="password"] {
+            width: 200px;
+            padding: 10px;
+        }
+
+        .modal button {
+            width: 100px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            z-index: 1;
+        }
+
+
+        .dropdown {
+            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            width: 200px;
+        }
+
+        .dropdown-select {
+            background-color: #08090A;
+            padding: 10px;
+            border-radius: 8px;
+            width: 75px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Light blue border for aesthetics */
+        }
+
+        .dropdown-select .arrow {
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            padding: 3px;
+            transform: rotate(45deg);
+            -webkit-transform: rotate(45deg);
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #131415;
+            border-radius: 4px;
+            margin-top: 2px;
+        }
+
+        .dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(174, 40, 40, 0.5);
+        }
+
+        .status-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #121214;
+            color: white;
+            font-size: 12px;
+            display: flex;
+            justify-content: start;
+            padding-left: 10px;
+            position: fixed;
+            bottom: 0;
+        }
+
+        #burn-banner {
+            display: none;
+            /* Initially hidden, will be shown via JavaScript if needed */
+            background-color: #5B1819;
+            color: white;
+            text-align: center;
+            padding: 5px 0;
+            /* Adjust padding to center the text vertically */
+            width: 100%;
+            height: 20px;
+            /* Set the height as specified */
+            position: fixed;
+            /* Makes the banner stay at the top even when scrolling */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            /* Ensures it stays on top of other content */
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: row;
+            /* Stack buttons vertically */
+            align-items: flex-start;
+            /* Align buttons to the left */
+            width: 100%;
+            /* Optional: depending on how you want the buttons to span */
+            margin-top: 10px;
+            /* Space between the textbox and the buttons */
+        }
+
+        .button-container button {
+            width: auto;
+            /* Adjust the width as necessary */
+            margin-bottom: 5px;
+            /* Space between buttons */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="burn-banner" style="display: none; color: white; text-align: center; padding: 10px;">
+        This is a BURN AFTER READ paste and will be deleted after the first view.
+    </div>
+    <div class="main-container">
+        <div class="left-box" style="width: 100%;">
+            <div class="icon">
+                <img src="images/sharkpaste.png" style="height: 32px; margin-left: 5rem; margin-right: 0.5rem;">
+                <span style="width: 100px" class="title" id="paste-title">Loading title...</span>
+            </div>
+            <!-- Textarea for displaying paste content -->
+            <textarea id="content" placeholder="Paste your content here..."></textarea>
+            <!-- Password input field and button for password-protected paste -->
+            <div id="passwordInput" style="display: none;">
+                <input style="outline: none;" type="password" id="pastePassword" placeholder="Enter password">
+                <button
+                    style="height: 37.5px; outline: none; border: none; padding: 10px 20px; font-weight: bold; background-color: #f0f2f4; margin-left: 0.5rem;"
+                    onclick="verifyPassword()">Decrypt</button>
+            </div>
+            <div class="button-container">
+                <button onclick="copyContent()">Copy</button>
+                <button style="margin-left: 0.5rem;" onclick="showRawContent()">Raw</button>
+            </div>
+        </div>
+        
+    </div>
+
+
+    <div class="status-bar">
+        <span class="status-item" style="margin-top: 5px;" id="password-status">Password Protected: No | </span>
+        <span class="status-item" style="margin-top: 5px;" id="syntax-status">Syntax: None | </span>
+        <span class="status-item" style="margin-top: 5px;" id="expiration-status">Expiration: None | </span>
+    </div>
+    <script>
+        function copyContent() {
+            var content = editor.getValue();
+            navigator.clipboard.writeText(content).then(function () {
+                alert('Content copied to clipboard.');
+            }, function (err) {
+                console.error('Error copying content: ', err);
+            });
+        }
+
+        function showRawContent() {
+            var rawContent = editor.getValue();
+            // Open a new window with the raw content displayed
+            var newWindow = window.open('', '_blank');
+            newWindow.document.body.style.backgroundColor = '#fff';
+            newWindow.document.body.style.padding = '20px';
+            newWindow.document.body.style.fontFamily = 'monospace';
+            newWindow.document.body.innerText = rawContent;
+        }
+
+
+        // Keep a reference to the CodeMirror instance
+        var editor;
+        var pasteId; // Declare pasteId as a global variable
+        function updateExpirationStatus(expiration) {
+            const statusElement = document.getElementById('expiration-status');
+            let statusText = 'Expiration: ';
+
+            if (expiration === 'burn') {
+                // Show the red banner for burn after read
+                document.getElementById('burn-banner').style.display = 'block';
+                statusText += 'Burn After Read';
+            } else if (expiration) {
+                // If there's a set expiration date, format it
+                statusText += new Date(expiration).toLocaleDateString();
+            } else {
+                // If there's no expiration set
+                statusText += 'None';
+            }
+
+            statusElement.textContent = statusText;
+        }
+        window.addEventListener('DOMContentLoaded', (event) => {
+            pasteId = window.location.pathname.split('/')[1]; // Assign value to pasteId
+
+            // Initialize CodeMirror on the textarea
+            editor = CodeMirror.fromTextArea(document.getElementById('content'), {
+                lineNumbers: true,
+                mode: "htmlmixed",
+                scrollbarStyle: "null",
+                readOnly: true
+            });
+
+            fetch(`/api/paste/${pasteId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.passwordProtected) {
+                        document.getElementById('passwordInput').style.display = 'block';
+                        document.getElementById('password-status').textContent = 'Password Protected: Yes' + ' | ';
+                    } else {
+                        editor.setValue(data.content);
+                        // If the paste should be burned after reading, delete it
+                        if (data.burnAfterRead) {
+                            // Call the API endpoint to delete the paste after it has been read
+                            fetch(`/api/burn/${pasteId}`, { method: 'POST' })
+                                .then(burnResponse => {
+                                    if (!burnResponse.ok) {
+                                        throw new Error('Failed to burn the paste after reading.');
+                                    }
+                                    console.log('Paste has been burned after reading.');
+                                })
+                                .catch(burnError => {
+                                    console.error('Error:', burnError);
+                                });
+                        }
+                    }
+                    updateExpirationStatus(data.expiration);
+
+                    if (data.expiration === 'Burn After Read') {
+                        document.getElementById('burn-banner').style.display = 'block';
+                        document.getElementById('expiration-status').textContent = 'Expiration: Burn After Read';
+                    } else if (data.expiration) {
+                        document.getElementById('expiration-status').textContent = `Expiration: ${data.expiration}`;
+                    } else {
+                        document.getElementById('expiration-status').textContent = 'Expiration: Never';
+                    }
+                    document.getElementById('paste-title').textContent = data.name || 'Untitled';  // Update title
+                    document.getElementById('syntax-status').textContent = 'Syntax: ' + (data.syntax || 'None') + ' | ';
+                })
+                .catch(error => {
+                    editor.setValue('Error loading paste.');
+                    console.error('Error:', error);
+                });
+
+            // Ensure syntax highlighting is updated when the select changes
+            document.getElementById('syntax').addEventListener('change', updateSyntaxMode);
+        });
+
+        function updateSyntaxMode() {
+            var syntaxSelect = document.getElementById('syntax');
+            var mode = syntaxSelect.value;
+            var modeMap = {
+                "html": "htmlmixed",
+                "css": "css",
+                "javascript": "javascript"
+            };
+            editor.setOption("mode", modeMap[mode] || "");
+        }
+
+        function verifyPassword() {
+            const password = document.getElementById('pastePassword').value;
+            fetch(`/api/verifyPassword/${pasteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('Invalid password');
+                    }
+                })
+                .then(content => {
+                    // Set the content in the CodeMirror editor
+                    editor.setValue(content);
+                    // Hide password input field and button
+                    document.getElementById('passwordInput').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Invalid password');
+                });
+        }
+        function updateStatusBar(syntax, expiration, isPasswordProtected, title) {
+            document.getElementById('syntax-display').textContent = `Syntax: ${syntax || 'None'}`;
+            document.getElementById('expiration-display').textContent = `Expiration: ${expiration ? new Date(expiration).toLocaleDateString() : 'None'}`;
+            document.getElementById('password-protected-display').textContent = `Password Protected: ${isPasswordProtected ? 'Yes' : 'No'}`;
+            document.getElementById('post-title').textContent = title || 'Untitled';
+        }
+    </script>
+</body>
+
+</html>
